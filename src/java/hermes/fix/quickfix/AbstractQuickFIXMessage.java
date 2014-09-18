@@ -21,7 +21,7 @@ import hermes.HermesRuntimeException;
 import hermes.fix.FIXMessage;
 import hermes.fix.NoSuchFieldException;
 
-import java.io.UnsupportedEncodingException;
+//import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -46,7 +46,7 @@ import quickfix.field.OnBehalfOfSubID;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
 import quickfix.field.TargetCompID;
-import quickfix.mina.message.FIXMessageDecoder;
+//import quickfix.mina.message.FIXMessageDecoder;	//	unused
 
 /**
  * This abstract FIX message uses a cache to hold all releated Java objects once
@@ -90,7 +90,6 @@ public abstract class AbstractQuickFIXMessage implements FIXMessage {
 		}
 
 		public void flush() {
-			// TODO Auto-generated method stub
 
 		}
 	}
@@ -103,14 +102,14 @@ public abstract class AbstractQuickFIXMessage implements FIXMessage {
 		return cache;
 	}
 
-	private volatile Map<Integer, Field> allFields;
-	private volatile Map<Integer, Field> cachedFields = new HashMap<Integer, Field>();
+	private volatile Map<Integer, Field<?>> allFields;
+	private volatile Map<Integer, Field<?>> cachedFields = new HashMap<Integer, Field<?>>();
 	private DataDictionary dictionary;
 	private QuickFIXMessageCache cache;
 
-	private FIXMessageDecoder getDecoder() throws UnsupportedEncodingException {
-		return cache.getDecoder();
-	}
+//	private FIXMessageDecoder getDecoder() throws UnsupportedEncodingException {	//	unused
+//		return cache.getDecoder();
+//	}
 
 	public String getMsgType() {
 		return getString(MsgType.FIELD);
@@ -128,7 +127,7 @@ public abstract class AbstractQuickFIXMessage implements FIXMessage {
 		return getAllFields().containsKey(tag);
 	}
 
-	public Map<Integer, Field> getAllFields() {
+	public Map<Integer, Field<?>> getAllFields() {
 		if (allFields == null) {
 			try {
 				
@@ -136,14 +135,14 @@ public abstract class AbstractQuickFIXMessage implements FIXMessage {
 				final Message message = getMessage();
 
 				lock.lock();
-				allFields = new LinkedHashMap<Integer, Field>();
+				allFields = new LinkedHashMap<Integer, Field<?>>();
 
 				if (message == null) {
-					return new HashMap<Integer, Field>();
+					return new HashMap<Integer, Field<?>>();
 				}
 
-				for (final Iterator iterator = message.getHeader().iterator(); iterator.hasNext();) {
-					Field field = (Field) iterator.next();
+				for (final Iterator<Field<?>> iterator = message.getHeader().iterator(); iterator.hasNext();) {
+					Field<?> field = (Field<?>) iterator.next();
 					allFields.put(field.getTag(), field);
 
 					if (retainedFields.contains(field.getTag())) {
@@ -151,8 +150,8 @@ public abstract class AbstractQuickFIXMessage implements FIXMessage {
 					}
 				}
 
-				for (final Iterator iterator = message.iterator(); iterator.hasNext();) {
-					Field field = (Field) iterator.next();
+				for (final Iterator<?> iterator = message.iterator(); iterator.hasNext();) {
+					Field<?> field = (Field<?>) iterator.next();
 					int tag = field.getTag();
 
 					if (!allFields.containsKey(tag)) {
@@ -164,12 +163,12 @@ public abstract class AbstractQuickFIXMessage implements FIXMessage {
 					}
 				}
 
-				for (Iterator groupsKeys = message.groupKeyIterator(); groupsKeys.hasNext();) {
-					int groupCountTag = ((Integer) groupsKeys.next()).intValue();
-				}
+//				for (Iterator<?> groupsKeys = message.groupKeyIterator(); groupsKeys.hasNext();) {	//	unused
+//					int groupCountTag = ((Integer) groupsKeys.next()).intValue();
+//				}
 
-				for (final Iterator iterator = message.getTrailer().iterator(); iterator.hasNext();) {
-					Field field = (Field) iterator.next();
+				for (final Iterator<?> iterator = message.getTrailer().iterator(); iterator.hasNext();) {
+					Field<?> field = (Field<?>) iterator.next();
 					allFields.put(field.getTag(), field);
 
 					if (retainedFields.contains(field.getTag())) {
@@ -197,12 +196,12 @@ public abstract class AbstractQuickFIXMessage implements FIXMessage {
 		}
 	}
 
-	public Object getObject(Field field) {
+	public Object getObject(Field<?> field) {
 		if (cachedFields.containsKey(field)) {
 			return cachedFields.get(field).getObject();
 		}
 
-		Field cached = getAllFields().get(field.getTag());
+		Field<?> cached = getAllFields().get(field.getTag());
 
 		if (cached != null) {
 			return cached.getObject();
@@ -258,13 +257,22 @@ public abstract class AbstractQuickFIXMessage implements FIXMessage {
 		try {
 			if (!getCache().contains(AbstractQuickFIXMessage.this)) {
 				try {
-					Message message = new Message(new String(getBytes()), dictionary, false);
+					String fixString = new String(getBytes());
+					
+					//	Determine dictionary from string version of message
+					//	Otherwise repeating groups may not work properly
+					if (getDictionary() == null) {
+						setDictionary(QuickFIXUtils.getDictionaryFromBeginString(fixString));
+					}
+					
+					Message message = new Message(fixString, dictionary, false);
 
 					getCache().put(this, message);
 
-					if (getDictionary() == null) {
-						setDictionary(QuickFIXUtils.getDictionary(message));
-					}
+					//	Old code for DataDictionary resolution below
+//					if (getDictionary() == null) {
+//						setDictionary(QuickFIXUtils.getDictionary(message));
+//					}
 
 					return message;
 				} catch (InvalidMessage e) {

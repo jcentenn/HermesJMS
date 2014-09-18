@@ -26,7 +26,7 @@ import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;
 
 /**
  * A renderer that displays toString() on a JMS message in a text area.
@@ -37,7 +37,7 @@ import org.apache.log4j.Logger;
  */
 
 public class ToStringMessageRenderer extends AbstractMessageRenderer {
-	private static final Logger log = Logger.getLogger(ToStringMessageRenderer.class);
+//	private static final Logger log = Logger.getLogger(ToStringMessageRenderer.class);
 
 	public ToStringMessageRenderer() {
 		super();

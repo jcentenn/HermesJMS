@@ -1006,11 +1006,11 @@ public class HermesBrowser extends DefaultDockableBarDockableHolder implements H
 		Properties props = new Properties();
 		Context oldContext = context;
 		HermesConfig oldConfig = null;
-
+		
 		props.put(Context.INITIAL_CONTEXT_FACTORY, HermesInitialContextFactory.class.getName());
 		props.put(Context.PROVIDER_URL, getCurrentConfigURL());
 		props.put("hermes.loader", JAXBHermesLoader.class.getName());
-
+		
 		log.debug("props=" + props);
 
 		Iterator listeners = null;
@@ -1320,5 +1320,15 @@ public class HermesBrowser extends DefaultDockableBarDockableHolder implements H
 			 }
 		 }
 		return null ;
+	}
+
+	public BrowserTreeDockableFrame getBrowserTreePane()
+	{
+		return browserTreePane;
+	}
+
+	public void setBrowserTreePane(BrowserTreeDockableFrame browserTreePane)
+	{
+		this.browserTreePane = browserTreePane;
 	}
 }

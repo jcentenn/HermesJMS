@@ -25,7 +25,9 @@ import hermes.browser.dialog.message.MessageEditorDialog;
 import hermes.browser.model.MessageHeaderTableModel;
 import hermes.swing.HideableTableColumn;
 import hermes.swing.SQL92FilterableTableModel;
+import hermes.swing.colors.ColorUtils;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.event.MouseEvent;
@@ -117,7 +119,13 @@ public class MessageHeaderTable extends SortableTable {
 	@Override
 	public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
 
-		return MessageHeaderTableSupport.prepareRenderer(super.prepareRenderer(renderer, row, column), this, renderer, row, column);
+		final Component component = super.prepareRenderer(renderer, row, column);
+
+		// Make sure the text is easy to see
+		component.setForeground(ColorUtils.getContrastingColor(component.getBackground()));
+		
+		return MessageHeaderTableSupport.prepareRenderer(component, this, renderer, row, column);
+		//return MessageHeaderTableSupport.prepareRenderer(super.prepareRenderer(renderer, row, column), this, renderer, row, column);
 	}
 
 	@Override

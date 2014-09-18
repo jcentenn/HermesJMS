@@ -41,12 +41,12 @@ public class FIXInputStreamReader implements Runnable, FIXReader
    private static final Logger log = Logger.getLogger(FIXInputStreamReader.class);
 
    private ArrayList<FIXMessage> messages = new ArrayList<FIXMessage>();
-   private int maxMessages = 512;
+//   private int maxMessages = 512;	//	unused
    private int maxMessageBuffer = 1024 * 512;
    private byte[] messageBuffer;
    private int messageBufferIndex = 0;
    private byte[] startOfMessage = new byte[] { '8', '=', 'F', 'I', 'X' };
-   private int messageId = 0;
+//   private int messageId = 0;	//	unused
    private boolean keepRunning = true;
    private boolean eofReached = false;
    private InputStream istream;
@@ -273,7 +273,7 @@ public class FIXInputStreamReader implements Runnable, FIXReader
       }
 
       messageBuffer[messageBufferIndex] = '\0';
-      String protocol = new String(messageBuffer, 0, messageBufferIndex).split("=")[1];
+//      String protocol = new String(messageBuffer, 0, messageBufferIndex).split("=")[1];	//	unused
       messageBuffer[messageBufferIndex++] = '\1';
 
       b = readByte(istream);

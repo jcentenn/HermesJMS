@@ -51,15 +51,15 @@ public class CompactFIXPrettyPrinter implements FIXPrettyPrinter {
 		}
 	}
 
-	private boolean isGroupCountField(DataDictionary dd, Field field) {
+	private boolean isGroupCountField(DataDictionary dd, Field<?> field) {
 		return dd.getFieldTypeEnum(field.getTag()) == FieldType.NumInGroup;
 	}
 
 	private StringBuffer processFieldMap(StringBuffer writer, StringBuffer lineWriter, DataDictionary dd, String msgType, FieldMap fieldMap) throws FieldNotFound {
-		Iterator fieldIterator = fieldMap.iterator();
+		Iterator<?> fieldIterator = fieldMap.iterator();
 
 		while (fieldIterator.hasNext()) {
-			Field field = (Field) fieldIterator.next();
+			Field<?> field = (Field<?>) fieldIterator.next();
 
 			if (!isGroupCountField(dd, field)) {
 				String value = fieldMap.getString(field.getTag());
@@ -101,7 +101,7 @@ public class CompactFIXPrettyPrinter implements FIXPrettyPrinter {
 			}
 		}
 
-		Iterator groupsKeys = fieldMap.groupKeyIterator();
+		Iterator<?> groupsKeys = fieldMap.groupKeyIterator();
 		while (groupsKeys.hasNext()) {
 			int groupCountTag = ((Integer) groupsKeys.next()).intValue();
 			int groupCount = fieldMap.getGroupCount(groupCountTag);

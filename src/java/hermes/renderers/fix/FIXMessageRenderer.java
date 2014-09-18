@@ -22,6 +22,9 @@ import hermes.fix.FIXUtils;
 import hermes.fix.quickfix.QuickFIXMessage;
 import hermes.fix.quickfix.QuickFIXMessageCache;
 import hermes.renderers.AbstractMessageRenderer;
+import hermes.swing.colors.Colors;
+import hermes.swing.listeners.mouse.MessageRendererMouseAdapter;
+import hermes.swing.listeners.mouse.MessageRendererMouseWheelListener;
 import hermes.util.MessageUtils;
 
 import java.io.IOException;
@@ -50,12 +53,27 @@ import org.apache.log4j.Logger;
 public class FIXMessageRenderer extends AbstractMessageRenderer {
 	private static final Logger log = Logger.getLogger(FIXMessageRenderer.class);
 	private static final String MESSAGE_CACHE = "messageCache";
-	private static final String MESSAGE_CACHE_INFO = "The number of panels to cache - can speed up the user interface when switching between messags";
+	private static final String MESSAGE_CACHE_INFO = "The number of panels to cache - can speed up the user interface when switching between messages";
 	private static final String VALUE_WITH_ENUM = "displayValueWithEnum";
 	private static final String VALUE_WITH_ENUM_INDO = "If true displays any enumeration values along with the descriptive text";
 	private static final String SHOW_HEADER_AND_TRAINER = "displayHeaderAndTrailer";
 	private static final String SHOW_HEADER_AND_TRAINER_INFO = "Display header and trailer fields";
+	
+	private static final String APPLICATION_COLOR = "applicationColor";
+	private static final String APPLICATION_COLOR_INFO = "Color for the message body";
 
+	private static final String GROUP_COLOR = "groupColor";
+	private static final String GROUP_COLOR_INFO = "Color for the group body";
+
+	private static final String HEADER_COLOR = "headerColor";
+	private static final String HEADER_COLOR_INFO = "Color for the header";
+
+	private static final String TRAILER_COLOR = "trailerColor";
+	private static final String TRAILER_COLOR_INFO = "Color for the trailer";
+
+	private static final String TEXT_COLOR = "textColor";
+	private static final String TEXT_COLOR_INFO = "Color for the text";
+	
 	private final QuickFIXMessageCache cache = new QuickFIXMessageCache(32);
 	private LRUMap panelCache;
 
@@ -64,6 +82,61 @@ public class FIXMessageRenderer extends AbstractMessageRenderer {
 		private boolean displayValueWithEnum = true;
 		private boolean displayHeaderAndTrailer = true;
 		private String name;
+		private Colors applicationColor = Colors.BISQUE;
+		private Colors groupColor = Colors.WHEAT;
+		private Colors headerColor = Colors.LINEN;
+		private Colors trailerColor = Colors.LINEN;
+		private Colors textColor = Colors.BURNTUMBER;
+
+		public Colors getTrailerColor()
+		{
+			return trailerColor;
+		}
+
+		public void setTrailerColor(Colors trailerColor) 
+		{
+			this.trailerColor = trailerColor;
+		}
+
+		public Colors getHeaderColor() 
+		{
+			return headerColor;
+		}
+
+		public void setHeaderColor(Colors headerColor) 
+		{
+			this.headerColor = headerColor;
+		}
+
+		public Colors getGroupColor() 
+		{
+			return groupColor;
+		}
+
+		public void setGroupColor(Colors groupColor) 
+		{
+			this.groupColor = groupColor;
+		}
+
+		public Colors getApplicationColor() 
+		{
+			return applicationColor;
+		}
+
+		public void setApplicationColor(Colors applicationColor) 
+		{
+			this.applicationColor = applicationColor;
+		}
+		
+		public Colors getTextColor() 
+		{
+			return textColor;
+		}
+
+		public void setTextColor(Colors textColor) 
+		{
+			this.textColor = textColor;
+		}
 
 		@Override
 		public String getName() {
@@ -87,6 +160,26 @@ public class FIXMessageRenderer extends AbstractMessageRenderer {
 
 			if (propertyName.equals(SHOW_HEADER_AND_TRAINER)) {
 				return SHOW_HEADER_AND_TRAINER_INFO;
+			}
+
+			if (propertyName.equals(APPLICATION_COLOR)) {
+				return APPLICATION_COLOR_INFO;
+			}
+			
+			if (propertyName.equals(GROUP_COLOR)) {
+				return GROUP_COLOR_INFO;
+			}
+			
+			if (propertyName.equals(HEADER_COLOR)) {
+				return HEADER_COLOR_INFO;
+			}
+			
+			if (propertyName.equals(TRAILER_COLOR)) {
+				return TRAILER_COLOR_INFO;
+			}
+
+			if (propertyName.equals(TEXT_COLOR)) {
+				return TEXT_COLOR_INFO;
 			}
 
 			return propertyName;
@@ -150,7 +243,8 @@ public class FIXMessageRenderer extends AbstractMessageRenderer {
 	protected JComponent createComponent(FIXMessage message) {
 		try {
 			final MyConfig currentConfig = (MyConfig) getConfig();
-			return FIXUtils.createView(message, currentConfig.getDisplayHeaderAndTrailer(), currentConfig.getDisplayValueWithEnum());
+			//return FIXUtils.createView(message, currentConfig.getDisplayHeaderAndTrailer(), currentConfig.getDisplayValueWithEnum());
+			return FIXUtils.createView(message, currentConfig);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -190,6 +284,9 @@ public class FIXMessageRenderer extends AbstractMessageRenderer {
 				}
 			}
 
+			rval.addMouseWheelListener(new MessageRendererMouseWheelListener());
+			rval.addMouseListener(new MessageRendererMouseAdapter());
+			
 			return rval;
 
 		} catch (Throwable ex) {

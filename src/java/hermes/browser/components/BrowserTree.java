@@ -703,6 +703,7 @@ public class BrowserTree extends JTree implements TreeSelectionListener, DropTar
 		getSelectionModel().addTreeSelectionListener(this);
 
 		addMouseListener(new MouseAdapter() {
+			
 			public void mouseClicked(MouseEvent e) {
 				maybeDoBrowse(e);
 			}
@@ -747,6 +748,9 @@ public class BrowserTree extends JTree implements TreeSelectionListener, DropTar
 	}
 
 	boolean maybeDoPopup(MouseEvent e) {
+		
+//		System.err.println(this.getSelectedHermesNode());
+		
 		if (e.isPopupTrigger()) {
 			popupMenu.show(e.getComponent(), e.getX(), e.getY());
 		}

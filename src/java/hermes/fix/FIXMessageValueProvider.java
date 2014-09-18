@@ -18,7 +18,7 @@
 package hermes.fix;
 
 
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;	//	unused
 
 import com.codestreet.selector.parser.IValueProvider;
 import com.codestreet.selector.parser.Identifier;
@@ -31,7 +31,7 @@ import com.codestreet.selector.parser.Identifier;
 
 public class FIXMessageValueProvider implements IValueProvider
 {
-   private static final Logger log = Logger.getLogger(FIXMessageValueProvider.class);
+//   private static final Logger log = Logger.getLogger(FIXMessageValueProvider.class);	//	unused
    private FIXMessage message;
 
    public FIXMessageValueProvider(FIXMessage message)

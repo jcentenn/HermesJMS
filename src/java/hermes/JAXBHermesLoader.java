@@ -19,11 +19,13 @@ package hermes;
 
 import hermes.browser.HermesBrowser;
 import hermes.browser.dialog.SelectorImpl;
+import hermes.browser.model.tree.FolderTreeNode;
 import hermes.config.ClasspathGroupConfig;
 import hermes.config.ConnectionConfig;
 import hermes.config.DestinationConfig;
 import hermes.config.FactoryConfig;
 import hermes.config.HermesConfig;
+import hermes.config.JMSSessionGroupConfig;
 import hermes.config.NamingConfig;
 import hermes.config.QuickFIXConfig;
 import hermes.config.SessionConfig;
@@ -95,6 +97,7 @@ public class JAXBHermesLoader implements HermesLoader {
 	private URL url;
 	private File file;
 	private HermesConfig config;
+	private Hermes hermes;
 	private JAXBElement<HermesConfig> element;
 	private ClassLoaderManager classLoaderManager;
 	private Hashtable properties;
@@ -431,7 +434,8 @@ public class JAXBHermesLoader implements HermesLoader {
 				try {
 
 					Hermes hermes = createHermes(factoryConfig);
-
+					this.hermes = hermes;
+					
 					rval.add(hermes);
 
 					notifyHermesAdded(hermes);
@@ -643,7 +647,14 @@ public class JAXBHermesLoader implements HermesLoader {
 	public void addConfigurationListener(HermesConfigurationListener listener) {
 
 		listeners.add(listener);
-
+		HermesConfig hermesConfig = null;
+		
+		try {
+			hermesConfig = getConfig();
+		} catch (HermesException e2) {
+			e2.printStackTrace();
+		}
+		
 		//
 		// Give it its initial state..
 
@@ -675,6 +686,15 @@ public class JAXBHermesLoader implements HermesLoader {
 			}
 		} catch (NamingException e) {
 			log.error(e.getMessage(), e);
+		}
+		
+		if (!hermesConfig.getJmsSessionGroup().isEmpty())
+		{
+			for (JMSSessionGroupConfig jmsSessionGroupConfig: hermesConfig.getJmsSessionGroup())
+			{
+				FolderTreeNode folderNode = new FolderTreeNode(jmsSessionGroupConfig.getName(), hermes, jmsSessionGroupConfig);
+				listener.onFolderAdded(folderNode);	
+			}
 		}
 	}
 

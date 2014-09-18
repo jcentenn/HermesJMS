@@ -40,7 +40,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;	//	unused
 
 import com.codestreet.selector.parser.InvalidSelectorException;
 import com.jidesoft.grid.SortableTable;
@@ -57,7 +57,7 @@ public class FIXMessageTable extends SortableTable {
 	 * 
 	 */
 	private static final long serialVersionUID = -2044612567082104913L;
-	private static final Logger log = Logger.getLogger(FIXMessageTable.class);
+//	private static final Logger log = Logger.getLogger(FIXMessageTable.class);	//	unused
 	private SQL92FilterableTableModel selectorModel;
 	private FIXMessageTableModel model;
 	private JidePopupMenu popup;

@@ -29,6 +29,7 @@ import hermes.browser.HermesBrowser;
 import hermes.browser.model.tree.AbstractTreeNode;
 import hermes.browser.model.tree.DestinationConfigTreeNode;
 import hermes.browser.model.tree.DestinationFragmentTreeNode;
+import hermes.browser.model.tree.FolderTreeNode;
 import hermes.browser.model.tree.HermesTreeNode;
 import hermes.browser.model.tree.HermesTreeNodeComparator;
 import hermes.browser.model.tree.MessageStoreTreeNode;
@@ -37,7 +38,10 @@ import hermes.browser.model.tree.NamingConfigTreeNode;
 import hermes.browser.model.tree.RepositoryTreeNode;
 import hermes.browser.tasks.UpdateMessageStoresTask;
 import hermes.config.DestinationConfig;
+import hermes.config.HermesConfig;
 import hermes.config.JDBCStore;
+import hermes.config.JMSGroupMemberConfig;
+import hermes.config.JMSSessionGroupConfig;
 import hermes.config.NamingConfig;
 import hermes.config.WatchConfig;
 import hermes.impl.DestinationConfigKeyWrapper;
@@ -47,8 +51,10 @@ import hermes.swing.SwingRunner;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TreeMap;
@@ -82,6 +88,7 @@ private static final Category cat = Category.getInstance(BrowserTreeModel.class)
 
    private Map<String, MessageStoreURLTreeNode> stores = new HashMap<String, MessageStoreURLTreeNode>();
    private Map<String, HermesTreeNode> hermesMap = new TreeMap<String, HermesTreeNode>();
+   private List<String> jmsSessionGroupConfigList = new ArrayList<String>();
    private DefaultMutableTreeNode jmsRootNode = new DefaultMutableTreeNode("sessions");
    private Map<String, NamingConfigTreeNode> namingNodeById = new HashMap<String, NamingConfigTreeNode>();
    private Map<HermesRepository, RepositoryTreeNode> rep2Node = new HashMap<HermesRepository, RepositoryTreeNode>();
@@ -370,18 +377,68 @@ private static final Category cat = Category.getInstance(BrowserTreeModel.class)
       });
    }
 
+   public void onFolderAdded(FolderTreeNode folderTreeNode)
+   {
+	   JMSSessionGroupConfig jmsSessionGroupConfig = folderTreeNode.getJmsSessionGroupConfig();
+	   
+	   if (!jmsSessionGroupConfigList.contains(jmsSessionGroupConfig.getName()))
+	   {
+		   Enumeration<?> enumeration = jmsRootNode.children();
+		   
+		   jmsSessionGroupConfigList.add(jmsSessionGroupConfig.getName());
+		   
+		   HashMap<String, DefaultMutableTreeNode> hermesTreeNodeMap = new HashMap<String, DefaultMutableTreeNode>();
+		   ArrayList<String> jmsGroupMemberConfigIdList = new ArrayList<String>();
+		   
+		   for (JMSGroupMemberConfig jmsGroupMemberConfig: jmsSessionGroupConfig.getJmsGroupMember())
+		   {
+			   jmsGroupMemberConfigIdList.add(jmsGroupMemberConfig.getId());
+		   }
+		   
+		   while (enumeration.hasMoreElements())
+		   {
+			   AbstractTreeNode abstractTreeNode = (AbstractTreeNode) enumeration.nextElement();
+	
+			   if (abstractTreeNode instanceof HermesTreeNode)
+			   {
+				   HermesTreeNode hermesTreeNode = (HermesTreeNode) abstractTreeNode;
+				   hermesTreeNodeMap.put(hermesTreeNode.getId(), hermesTreeNode);
+			   }
+		   }
+		   
+		   for (String jmsGroupMemberConfigId: jmsGroupMemberConfigIdList)
+		   {
+			   DefaultMutableTreeNode hermesTreeNode = hermesTreeNodeMap.get(jmsGroupMemberConfigId);
+			   
+			   if (hermesTreeNode != null)
+			   {
+				   folderTreeNode.add(hermesTreeNode);
+			   }
+		   }
+	
+		   jmsRootNode.add(folderTreeNode);
+		   
+		   int i = jmsRootNode.getChildCount() - 1;
+		   
+		   nodesWereInserted(jmsRootNode, new int[] { i });
+	   }
+   }
+   
    public void onHermesAdded(Hermes hermes)
    {
       // cat.debug("onHermesAdded, hermes=" + hermes);
 
       try
       {
+    	 HermesConfig hermesConfig = HermesBrowser.getBrowser().getConfig();
+
          if (hermesMap.containsKey(hermes.getId()))
          {
             onHermesRemoved(hermes);
          }
 
          HermesTreeNode cfNode = new HermesTreeNode(hermes.getId(), hermes, this);
+         
          HermesTreeNodeComparator comparator = new HermesTreeNodeComparator();
 
          hermesMap.put(hermes.getId(), cfNode);
@@ -389,17 +446,22 @@ private static final Category cat = Category.getInstance(BrowserTreeModel.class)
 
          for (; i < jmsRootNode.getChildCount(); i++)
          {
-            HermesTreeNode node = (HermesTreeNode) jmsRootNode.getChildAt(i);
+        	Object nodeObject = jmsRootNode.getChildAt(i);
+        	
+        	if (nodeObject.getClass().isAssignableFrom(HermesTreeNode.class))
+        	{
+        		HermesTreeNode node = (HermesTreeNode) jmsRootNode.getChildAt(i);
 
-            if (comparator.compare(cfNode, node) < 0)
-            {
-               break;
-            }
+	            if (comparator.compare(cfNode, node) < 0)
+	            {
+	               break;
+	            }
+        	}
          }
+         
          jmsRootNode.insert(cfNode, i);
 
          nodesWereInserted(jmsRootNode, new int[] { i });
-
       }
       catch (JMSException ex)
       {
@@ -544,4 +606,23 @@ private static final Category cat = Category.getInstance(BrowserTreeModel.class)
       // NOP
    }
 
+   public DefaultMutableTreeNode getJmsRootNode()
+   {
+	   return jmsRootNode;
+   }
+
+   public void setJmsRootNode(DefaultMutableTreeNode jmsRootNode) 
+   {
+	   this.jmsRootNode = jmsRootNode;
+   }
+
+   public List<String> getJmsSessionGroupConfigList()
+   {
+	   return jmsSessionGroupConfigList;
+   }
+
+   public void setJmsSessionGroupConfigList(List<String> jmsSessionGroupConfigList) 
+   {
+	   this.jmsSessionGroupConfigList = jmsSessionGroupConfigList;
+   }
 }

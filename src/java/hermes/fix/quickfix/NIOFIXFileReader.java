@@ -279,7 +279,7 @@ public class NIOFIXFileReader implements FIXReader, Runnable
 
    private final void clean(final MappedByteBuffer buffer)
    {
-      AccessController.doPrivileged(new PrivilegedAction()
+      AccessController.doPrivileged(new PrivilegedAction<Object>()
       {
          public Object run()
          {

@@ -19,7 +19,9 @@ package hermes.renderers;
 
 import hermes.Domain;
 import hermes.browser.ConfigDialogProxy;
+import hermes.renderers.components.HeaderRendererTable;
 import hermes.swing.SwingUtils;
+import hermes.swing.listeners.mouse.MessageRendererMouseWheelListener;
 import hermes.util.JMSUtils;
 
 import java.util.Date;
@@ -29,10 +31,7 @@ import javax.jms.Message;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.table.DefaultTableModel;
-
 import org.apache.log4j.Logger;
-
-import com.jidesoft.grid.SortableTable;
 
 /**
  * A renderer that displays the JMS and user header properties in a sortable
@@ -53,7 +52,7 @@ public class DefaultMessageHeaderRenderer extends AbstractMessageRenderer {
 
 	@Override
 	public JComponent render(JScrollPane parent, Message m) {
-		final SortableTable table = new SortableTable();
+		//final SortableTable table = new SortableTable();
 		final DefaultTableModel tableModel = new DefaultTableModel() {
 
 			/**
@@ -124,10 +123,11 @@ public class DefaultMessageHeaderRenderer extends AbstractMessageRenderer {
 
 		try {
 			if (m.getPropertyNames() != null) {
-				for (final Enumeration iter = m.getPropertyNames(); iter.hasMoreElements();) {
+				for (final Enumeration<?> iter = m.getPropertyNames(); iter.hasMoreElements();) {
 					try {
 						final String propertyName = (String) iter.nextElement();
 						final Object propertyValue = m.getObjectProperty(propertyName);
+
 						final Object[] row = { propertyName, propertyValue };
 
 						tableModel.addRow(row);
@@ -143,8 +143,11 @@ public class DefaultMessageHeaderRenderer extends AbstractMessageRenderer {
 			log.error(e.getMessage(), e);
 		}
 
+		HeaderRendererTable table = new HeaderRendererTable(tableModel);
+		
 		table.setModel(tableModel);
-
+		
+		table.addMouseWheelListener(new MessageRendererMouseWheelListener());
 		return SwingUtils.createJScrollPane(table);
 	}
 

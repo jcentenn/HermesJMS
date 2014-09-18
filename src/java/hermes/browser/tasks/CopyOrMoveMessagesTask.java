@@ -47,7 +47,7 @@ import org.apache.log4j.Logger;
 public class CopyOrMoveMessagesTask extends TaskSupport {
 	private static final Logger cat = Logger.getLogger(CopyOrMoveMessagesTask.class);
 
-	private Collection messages;
+	private Collection<Message> messages;
 	private Hermes hermes;
 	private String destination;
 	private boolean keepRunning = true;
@@ -164,21 +164,26 @@ public class CopyOrMoveMessagesTask extends TaskSupport {
 					}
 				});
 
-				for (Iterator iter = messages.iterator(); iter.hasNext() && !monitor.isCanceled();) {
-					Message newMessage = createMessage(to, iter.next(), ids);
-
-					hermes.send(to, newMessage);
-
-					iter.remove();
-
-					final int progress = startSize - messages.size();
-
-					SwingRunner.invokeLater(new Runnable() {
-						public void run() {
-							monitor.setProgress(progress);
-							monitor.setNote(new Long(messages.size()) + " messages left to copy");
-						}
-					});
+				//	Was getting some ConcurrentModificationExceptions without sync block
+				synchronized(this)
+				{
+					for (final Iterator<Message> iter = messages.iterator(); iter.hasNext() && !monitor.isCanceled();) {
+						
+						Message newMessage = createMessage(to, iter.next(), ids);
+	
+						hermes.send(to, newMessage);
+	
+						iter.remove();
+	
+						final int progress = startSize - messages.size();
+	
+						SwingRunner.invokeLater(new Runnable() {
+							public void run() {
+								monitor.setProgress(progress);
+								monitor.setNote(new Long(messages.size()) + " messages left to copy");
+							}
+						});
+					}
 				}
 
 				//

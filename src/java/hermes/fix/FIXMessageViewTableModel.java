@@ -49,6 +49,12 @@ public class FIXMessageViewTableModel extends AbstractTableModel {
 	public static final String VALUE = "Value";
 	public static final String DESCRIPTION = "Description";
 
+	private static final Boolean GROUP_START_FALSE = Boolean.FALSE;
+	private static final Boolean GROUP_START_TRUE = Boolean.TRUE;
+	
+	private static final Integer GROUP_INDEX_NULL = -1;
+	private static final Integer GROUP_START_INDEX = 0;
+	
 	private String[] columns = { FIELD, NAME, VALUE, DESCRIPTION };
 
 	private FIXMessage message;
@@ -64,28 +70,30 @@ public class FIXMessageViewTableModel extends AbstractTableModel {
 		public String fieldName;
 		public String fieldValue;
 		public Object fieldValueName = "";
+		public Boolean isGroupStart = Boolean.FALSE;
+		public Integer groupIndex;
 	}
 
 	public FIXMessageViewTableModel(FIXMessage message) throws FIXException, FieldNotFound {
 		super();
-		this.message = message;
+		this.setMessage(message);
 
 		String msgType = message.getMsgType();
 
-		processFieldMap("", message.getDictionary(), msgType, message.getMessage().getHeader());
-		processFieldMap("", message.getDictionary(), msgType, message.getMessage());
-		processFieldMap("", message.getDictionary(), msgType, message.getMessage().getTrailer());
+		processFieldMap("", message.getDictionary(), msgType, message.getMessage().getHeader(), GROUP_START_FALSE, GROUP_INDEX_NULL);
+		processFieldMap("", message.getDictionary(), msgType, message.getMessage(), GROUP_START_FALSE, GROUP_INDEX_NULL);
+		processFieldMap("", message.getDictionary(), msgType, message.getMessage().getTrailer(), GROUP_START_FALSE, GROUP_INDEX_NULL);
 	}
 
-	private boolean isGroupCountField(DataDictionary dd, Field field) {
+	private boolean isGroupCountField(DataDictionary dd, Field<?> field) {
 		return dd.getFieldTypeEnum(field.getTag()) == FieldType.NumInGroup;
 	}
 
-	private void processFieldMap(String prefix, DataDictionary dd, String msgType, FieldMap fieldMap) {
+	private void processFieldMap(String prefix, DataDictionary dd, String msgType, FieldMap fieldMap, Boolean inGroup, Integer groupIndex) {
 
-		Iterator fieldIterator = fieldMap.iterator();
+		Iterator<?> fieldIterator = fieldMap.iterator();
 		while (fieldIterator.hasNext()) {
-			Field field = (Field) fieldIterator.next();
+			Field<?> field = (Field<?>) fieldIterator.next();
 			try {
 				if (!isGroupCountField(dd, field)) {
 					String value = fieldMap.getString(field.getTag());
@@ -104,6 +112,8 @@ public class FIXMessageViewTableModel extends AbstractTableModel {
 					rowDef.tag = field.getTag();
 					rowDef.fieldName = prefix + (fieldName == null ? "" : fieldName);
 					rowDef.fieldValue = value == null ? "" : value;
+					rowDef.isGroupStart = inGroup;
+					rowDef.groupIndex = groupIndex;
 					try {
 						rowDef.fieldValueName = dd.getValueName(field.getTag(), fieldMap.getString(field.getTag()));
 					} catch (Throwable ex) {
@@ -117,7 +127,7 @@ public class FIXMessageViewTableModel extends AbstractTableModel {
 			}
 		}
 
-		Iterator groupsKeys = fieldMap.groupKeyIterator();
+		Iterator<?> groupsKeys = fieldMap.groupKeyIterator();
 		while (groupsKeys.hasNext()) {
 			int groupCountTag = ((Integer) groupsKeys.next()).intValue();
 
@@ -126,6 +136,7 @@ public class FIXMessageViewTableModel extends AbstractTableModel {
 			rowDef.tag = groupCountTag;
 			rowDef.fieldName = prefix + ((dd.getFieldName(groupCountTag) == null) ? "" : dd.getFieldName(groupCountTag));
 			rowDef.fieldValue = Integer.toString(fieldMap.getGroupCount(groupCountTag));
+			rowDef.groupIndex = GROUP_START_INDEX;
 			rows.add(rowDef);
 
 			Group g = new Group(groupCountTag, 0);
@@ -133,7 +144,7 @@ public class FIXMessageViewTableModel extends AbstractTableModel {
 			while (fieldMap.hasGroup(i, groupCountTag)) {
 				try {
 					fieldMap.getGroup(i, g);
-					processFieldMap(prefix + "  ", dd, msgType, g);
+					processFieldMap(prefix + "  ", dd, msgType, g, GROUP_START_TRUE, i);
 				} catch (FieldNotFound ex) {
 					log.error(ex);
 				}
@@ -187,10 +198,20 @@ public class FIXMessageViewTableModel extends AbstractTableModel {
 			return row.fieldValue;
 		case 3:
 			return row.fieldValueName;
-
+		case 4:
+			return row.isGroupStart;
+		case 5:
+			return row.groupIndex;
 		default:
 			return "";
 		}
 	}
 
+	public FIXMessage getMessage() {
+		return message;
+	}
+
+	public void setMessage(FIXMessage message) {
+		this.message = message;
+	}
 }

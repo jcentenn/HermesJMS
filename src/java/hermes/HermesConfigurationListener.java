@@ -17,6 +17,7 @@
 
 package hermes;
 
+import hermes.browser.model.tree.FolderTreeNode;
 import hermes.config.DestinationConfig;
 import hermes.config.NamingConfig;
 
@@ -39,4 +40,6 @@ public interface HermesConfigurationListener
     public void onDestinationAdded(Hermes hermes, DestinationConfig destinationConfig);
 
     public void onDestinationRemoved(Hermes hermes, DestinationConfig destinationConfig);
+    
+    public void onFolderAdded(FolderTreeNode folderNode);
 }
