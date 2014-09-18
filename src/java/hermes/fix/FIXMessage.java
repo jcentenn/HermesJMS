@@ -43,11 +43,11 @@ public interface FIXMessage
 
    public abstract boolean fieldExists(int tag);
 
-   public abstract Map<Integer, Field> getAllFields();
+   public abstract Map<Integer, Field<?>> getAllFields();
 
    public abstract void reset();
 
-   public abstract Object getObject(Field field) ;
+   public abstract Object getObject(Field<?> field) ;
 
    public abstract Object getObject(int tag) throws NoSuchFieldException;;
 

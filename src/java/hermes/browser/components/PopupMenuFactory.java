@@ -21,7 +21,10 @@ import hermes.Hermes;
 import hermes.HermesException;
 import hermes.browser.HermesBrowser;
 import hermes.browser.IconCache;
+import hermes.browser.model.BrowserTreeModel;
 import hermes.browser.model.tree.DestinationConfigTreeNode;
+import hermes.browser.model.tree.FolderTreeNode;
+import hermes.browser.model.tree.HermesTreeNode;
 import hermes.browser.model.tree.QueueTopicTreeNode;
 import hermes.browser.model.tree.QueueTreeNode;
 import hermes.browser.model.tree.TopicTreeNode;
@@ -35,6 +38,7 @@ import hermes.swing.actions.ActionRegistry;
 import hermes.swing.actions.AddDurableTopicAction;
 import hermes.swing.actions.AddQueueAction;
 import hermes.swing.actions.AddToExistingWatchAction;
+import hermes.swing.actions.AddToSessionFolderAction;
 import hermes.swing.actions.AddTopicAction;
 import hermes.swing.actions.BrowseDestinationOrContextAction;
 import hermes.swing.actions.BrowseDestinationWithSelectorAction;
@@ -48,6 +52,7 @@ import hermes.swing.actions.CreateNewContextAction;
 import hermes.swing.actions.CreateNewJNDIContextAction;
 import hermes.swing.actions.CreateNewMessageStoreAction;
 import hermes.swing.actions.CreateNewSessionAction;
+import hermes.swing.actions.CreateNewSessionFolderAction;
 import hermes.swing.actions.CreateNewSessionFromJNDIAction;
 import hermes.swing.actions.CreateNewWatchAction;
 import hermes.swing.actions.CutMessagesToClipboardAction;
@@ -77,7 +82,9 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
@@ -85,6 +92,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.TransferHandler;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 
 import org.apache.log4j.Logger;
@@ -244,14 +252,17 @@ public class PopupMenuFactory
       final JideMenu watchMenu = new JideMenu("Watch");
       final JideMenu newMenu = new JideMenu("New");
       final JideMenu recordMenu = new JideMenu("Record to");
-
+      final JideMenu addToSessionFolderMenu = new JideMenu("Add To Session Folder");
+      
       final JMenuItem browseItem = new JMenuItem(ActionRegistry.getAction(BrowseDestinationOrContextAction.class));
       final JMenuItem browseWithSelectorItem = new JMenuItem(ActionRegistry.getAction(BrowseDestinationWithSelectorAction.class)) ;
       final JMenuItem searchItem = new JMenuItem(ActionRegistry.getAction(SearchDestinationOrContextAction.class));
       final JMenuItem truncateItem = new JMenuItem(ActionRegistry.getAction(TruncateAction.class));
+//      final JMenuItem addToSessionFolder = new JMenuItem(ActionRegistry.getAction(AddToSessionFolderAction.class));
       final JMenuItem editItem = new JMenuItem(ActionRegistry.getAction(EditObjectAction.class));
       final JMenuItem unsubscribe = new JMenuItem(ActionRegistry.getAction(DurableUnsubscribeAction.class));
       final JMenuItem addSession = new JMenuItem(ActionRegistry.getAction(CreateNewSessionAction.class));
+      final JMenuItem addSessionFolder = new JMenuItem(ActionRegistry.getAction(CreateNewSessionFolderAction.class));
       final JMenuItem addContext = new JMenuItem(ActionRegistry.getAction(CreateNewContextAction.class));
       final JMenuItem addStore = new JMenuItem(ActionRegistry.getAction(CreateNewMessageStoreAction.class));
       final JMenuItem copySession = new JMenuItem(ActionRegistry.getAction(CopyBrowserNodeAction.class));
@@ -268,6 +279,7 @@ public class PopupMenuFactory
 
       newMenu.add(new JMenuItem(ActionRegistry.getAction(SendNewMessageAction.class))) ;
       newMenu.add(addSession);
+      newMenu.add(addSessionFolder);
       newMenu.add(addContext);
       newMenu.add(addQueue);
       newMenu.add(addTopic);
@@ -283,10 +295,23 @@ public class PopupMenuFactory
          }
       });
 
+//      System.err.println("CHECK: " + tree.isCurrentSelectionASession());
+      //addToSessionFolderMenu.setEnabled(false);
+      addToSessionFolderMenu.setEnabled(tree.isCurrentSelectionASession());
+      
+//      addToSessionFolder.addPropertyChangeListener("enabled", new PropertyChangeListener()
+//      {
+//          public void propertyChange(PropertyChangeEvent evt)
+//          {
+//        	  addToSessionFolderMenu.setEnabled((Boolean) evt.getNewValue());
+//          }
+//       });
+      
       popupMenu.add(newMenu);
       popupMenu.add(editItem);
       popupMenu.add(statistics);
       popupMenu.add(copySession);
+      popupMenu.add(addToSessionFolderMenu);
       popupMenu.add(discover);
       popupMenu.add(delete);
       popupMenu.addSeparator() ;
@@ -386,7 +411,71 @@ public class PopupMenuFactory
          }
       });
 
+      popupMenu.addMouseListener(new MouseAdapter()
+      {
+    	  public void mouseEntered(MouseEvent e)
+          {
+    		  addToSessionFolderMenu.removeAll();
+    		  boolean enabled = false;
+
+    		  BrowserTreeModel browserTreeModel = (BrowserTreeModel) tree.getModel();
+    		  DefaultMutableTreeNode rootNode = browserTreeModel.getJmsRootNode();
+    		  HermesTreeNode selectedNode = tree.getSelectedHermesNode();
+    		  Object parentNode = null;
+    		  
+    		  if (selectedNode != null)
+    		  {
+        		  if (selectedNode.getParent() != null)
+        		  {
+        			  parentNode = selectedNode.getParent();
+        		  }
+    		  }
+    		  
+        	  if (rootNode.getChildCount() > 0)
+        	  {
+        		  Enumeration<?> rootNodeEnumeration = rootNode.children();
+				
+        		  while (rootNodeEnumeration.hasMoreElements())
+        		  {
+        			  Object node = rootNodeEnumeration.nextElement();
+        			  
+        			  if (node.getClass().isAssignableFrom(FolderTreeNode.class))
+        			  {
+        				  FolderTreeNode folderTreeNode = (FolderTreeNode) node;
+        				  
+        				  if (!folderTreeNode.equals(parentNode))
+        				  {
+        					  addToSessionFolderMenu.add(new AddToSessionFolderAction(selectedNode, folderTreeNode));	  
+        				  }
+        			  }
+        		  }
+        	  }
+        	  
+        	  if (!rootNode.equals(parentNode))
+        	  {
+        		  addToSessionFolderMenu.add(new AddToSessionFolderAction(selectedNode, rootNode));  
+        	  }
+        	  
+        	  enabled = tree.isCurrentSelectionASession();
+        	  
+//        	  //	Check to see if selected node is the sessions node
+//        	  if (selectedNode != null)
+//        	  {
+//        		  //	If the parent of the selected node is the sessions node and
+//        		  //	the selected node is a session node enable menu
+//            	  if (rootNode.equals(parentNode))
+//            	  {
+//            		  if (tree.isCurrentSelectionASession())
+//            		  {
+//            			  enabled = true;
+//            		  }
+//            	  }
+//        	  }
+        	
+        	  addToSessionFolderMenu.setEnabled(enabled);
+          }
+       });
+      
       return popupMenu;
    }
-
 }

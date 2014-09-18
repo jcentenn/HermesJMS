@@ -81,7 +81,7 @@ public interface ConfigDAO
 
    public abstract Collection<SessionConfig> getAllSessions(HermesConfig config) throws HermesException;
 
-   public abstract Collection getAllDestinations(HermesConfig config, String hermesId) throws HermesException;
+   public abstract Collection<DestinationConfig> getAllDestinations(HermesConfig config, String hermesId) throws HermesException;
 
    public abstract Properties getRendererProperties(RendererConfig rConfig);
 

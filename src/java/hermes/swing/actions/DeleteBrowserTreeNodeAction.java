@@ -21,9 +21,12 @@ import hermes.Hermes;
 import hermes.HermesException;
 import hermes.browser.HermesBrowser;
 import hermes.browser.IconCache;
+import hermes.browser.components.BrowserTree;
+import hermes.browser.model.BrowserTreeModel;
 import hermes.browser.model.tree.AbstractTreeNode;
 import hermes.browser.model.tree.DestinationConfigTreeNode;
 import hermes.browser.model.tree.DestinationFragmentTreeNode;
+import hermes.browser.model.tree.FolderTreeNode;
 import hermes.browser.model.tree.HermesTreeNode;
 import hermes.browser.model.tree.MessageStoreQueueTreeNode;
 import hermes.browser.model.tree.MessageStoreTopicTreeNode;
@@ -31,21 +34,27 @@ import hermes.browser.model.tree.MessageStoreTreeNode;
 import hermes.browser.model.tree.MessageStoreURLTreeNode;
 import hermes.browser.model.tree.NamingConfigTreeNode;
 import hermes.config.HermesConfig;
+import hermes.config.JMSSessionGroupConfig;
 import hermes.store.MessageStore;
 import hermes.util.JMSUtils;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.naming.NamingException;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
@@ -69,7 +78,7 @@ private static final Logger log = Logger.getLogger(DeleteBrowserTreeNodeAction.c
    public DeleteBrowserTreeNodeAction()
    {
       putValue(Action.NAME, "Delete");
-      putValue(Action.SHORT_DESCRIPTION, "Delete the queue, topic, session, context or message store.");
+      putValue(Action.SHORT_DESCRIPTION, "Delete the queue, topic, session, session folder, context or message store.");
       putValue(Action.SMALL_ICON, IconCache.getIcon("hermes.objects.delete"));
       putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false));
 
@@ -78,7 +87,7 @@ private static final Logger log = Logger.getLogger(DeleteBrowserTreeNodeAction.c
       if (!HermesBrowser.getBrowser().isRestricted())
       {
          enableOnBrowserTreeSelection(new Class[] { MessageStoreURLTreeNode.class, DestinationConfigTreeNode.class, NamingConfigTreeNode.class,
-               HermesTreeNode.class, MessageStoreTreeNode.class, MessageStoreQueueTreeNode.class, MessageStoreTopicTreeNode.class }, this, false);
+               HermesTreeNode.class, MessageStoreTreeNode.class, MessageStoreQueueTreeNode.class, MessageStoreTopicTreeNode.class, FolderTreeNode.class }, this, false);
       }
 
    }
@@ -256,6 +265,57 @@ private static final Logger log = Logger.getLogger(DeleteBrowserTreeNodeAction.c
 
    }
 
+   private void doDelete(FolderTreeNode hermesNode) throws HermesException, NamingException
+   {
+		final HermesConfig hermesConfig = HermesBrowser.getBrowser().getConfig();
+		final MutableTreeNode parentNode = (MutableTreeNode) hermesNode.getParent();
+		
+		HermesBrowser hermesBrowser = HermesBrowser.getBrowser();
+		
+		BrowserTree browserTree = hermesBrowser.getBrowserTree();
+		BrowserTreeModel browserTreeModel = (BrowserTreeModel) browserTree.getModel();
+		DefaultMutableTreeNode jmsRootNode = browserTreeModel.getJmsRootNode();
+		
+		if (hermesNode.getChildCount() > 0)
+		{
+			Enumeration<?> hermesTreeNodeEnumeration = hermesNode.children();
+			ArrayList<HermesTreeNode> hermesTreeNodeList = new ArrayList<HermesTreeNode>();	
+			
+			while (hermesTreeNodeEnumeration.hasMoreElements())
+			{
+				hermesTreeNodeList.add((HermesTreeNode) hermesTreeNodeEnumeration.nextElement());
+			}
+			
+			for (HermesTreeNode hermesTreeNode : hermesTreeNodeList)
+			{
+				jmsRootNode.add(hermesTreeNode);
+			}
+		}
+		   
+		List<JMSSessionGroupConfig> jmsSessionGroupConfigList = hermesConfig.getJmsSessionGroup();
+
+		final int[] index = { parentNode.getIndex(hermesNode) };
+		final Object[] objects = { hermesNode };
+
+		jmsSessionGroupConfigList.remove(hermesNode.getJmsSessionGroupConfig());
+		parentNode.remove(hermesNode);
+		
+		
+		hermesBrowser.getBrowserTree().getBrowserModel().nodesWereRemoved(parentNode, index, objects);
+		
+		hermesBrowser.saveConfig();
+		
+		//	Record expanded nodes to reinstate later; 
+		Enumeration<TreePath> expandedPaths = BrowserTreeUtil.saveExpansionState(getBrowserTree());
+		
+		//	Refresh the model to reflect the movement of the BrowserTreeNode
+		//	This will close all the nodes
+		HermesBrowser.getBrowser().getBrowserTree().getBrowserModel().nodeStructureChanged(parentNode);
+		
+		//	Use saved node state to restore expanded noded
+		BrowserTreeUtil.restoreExpansionState(browserTree, expandedPaths);
+   }
+   
    public void actionPerformed(ActionEvent event)
    {
       try
@@ -299,6 +359,10 @@ private static final Logger log = Logger.getLogger(DeleteBrowserTreeNodeAction.c
                   else if (object instanceof MessageStoreURLTreeNode)
                   {
                      doDelete((MessageStoreURLTreeNode) object);
+                  }
+                  else if (object instanceof FolderTreeNode)
+                  {
+                     doDelete((FolderTreeNode) object);
                   }
                }
             }

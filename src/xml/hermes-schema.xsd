@@ -249,6 +249,17 @@
 		<xs:attribute name="id" type="xs:string" />
 	</xs:complexType>
 
+	<xs:complexType name="JMSGroupMemberConfig">
+		<xs:attribute name="id" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="JMSSessionGroupConfig">
+		<xs:sequence>
+			<xs:element name="jmsGroupMember" type="JMSGroupMemberConfig" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string"/>
+	</xs:complexType>
+	
 	<xs:element name="config" type="HermesConfig" />
 
 </xs:schema>
+

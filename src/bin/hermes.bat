@@ -18,8 +18,9 @@ REM %~dp0 is expanded pathname of the current script under NT
 
 
 set PATH=
-set HERMES_HOME=$INSTALL_PATH
-
+@REM set HERMES HOME to your install directory and uncomment set HERMES_CONFIG=%HERMES_HOME%\cfg
+set HERMES_HOME=
+@REM set HERMES_CONFIG=%HERMES_HOME%\cfg
 
 if "%HERMES_CONFIG%"=="" goto tryDotHermes
 goto setOtherVars

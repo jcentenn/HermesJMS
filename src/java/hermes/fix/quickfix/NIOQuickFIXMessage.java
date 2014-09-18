@@ -19,7 +19,7 @@ package hermes.fix.quickfix;
 
 import hermes.fix.FIXMessage;
 
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;	//	unused
 
 import quickfix.DataDictionary;
 
@@ -33,7 +33,7 @@ import quickfix.DataDictionary;
 
 public class NIOQuickFIXMessage extends AbstractQuickFIXMessage implements FIXMessage
 {   
-   private static final Logger log = Logger.getLogger(NIOQuickFIXMessage.class);
+//   private static final Logger log = Logger.getLogger(NIOQuickFIXMessage.class);	//	unused
    private NIOFIXFileReader reader ;
    private int startOfMessage ;
    private int lengthOfMessage ;  

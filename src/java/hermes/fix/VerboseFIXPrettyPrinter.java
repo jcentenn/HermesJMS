@@ -37,10 +37,10 @@ public class VerboseFIXPrettyPrinter implements FIXPrettyPrinter
             
       line.append(message.getString(SenderCompID.FIELD)).append(" -> ").append(message.getString(TargetCompID.FIELD)).append("\n") ;
       
-      Map<Integer, Field> fields =  message.getAllFields() ;
-      for (final Map.Entry<Integer, Field>  entry : fields.entrySet())
+      Map<Integer, Field<?>> fields =  message.getAllFields() ;
+      for (final Map.Entry<Integer, Field<?>>  entry : fields.entrySet())
       {           
-         final Field field = entry.getValue() ;
+         final Field<?> field = entry.getValue() ;
          
          line.append("    ") ;
          

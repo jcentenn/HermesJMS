@@ -48,6 +48,8 @@ import quickfix.UtcTimeStampField;
 
 public class QuickFIXUtils {
 	private static Map<String, DataDictionary> dictionaryCache = new HashMap<String, DataDictionary>();
+	private static String SOH_DELIMITER = "\u0001";
+	private static String EQUALS_SIGN = "=";
 
 	public static String FIX50_DICTIONARY = "FIX.5.0";
 	private static Set<String> BEGIN_STRINGS = new HashSet<String>();
@@ -62,6 +64,12 @@ public class QuickFIXUtils {
 		BEGIN_STRINGS.add(FixVersions.BEGINSTRING_FIXT11);
 	}
 
+	public static DataDictionary getDictionaryFromBeginString(String messageString) throws FIXException {
+		String beginStringPair = messageString.split(SOH_DELIMITER)[0];
+		
+		return getDictionary(beginStringPair.split(EQUALS_SIGN)[1]);
+	}
+	
 	public static DataDictionary getDictionary(Message message) throws FieldNotFound, FIXException {
 		String beginString = message.getHeader().getString(8);
 
@@ -100,7 +108,7 @@ public class QuickFIXUtils {
 		return dictionary;
 	}
 
-	public static Field getField(Message message, Field field) {
+	public static Field<?> getField(Message message, Field<?> field) {
 		try {
 			if (field instanceof BooleanField) {
 				try {

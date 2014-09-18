@@ -12,6 +12,7 @@
 	<property name="resources" value="${src}/resources" />
 	<property name="src.lib" value="${src}/lib" />
 	<property name="src.libext" value="${src}/libext" />
+	<property name="hermes.lib" value="lib" />
 	<property name="src.providers" value="${src}/providers" />
 
 	<property name="src.bin" value="${src}/bin" />
@@ -378,7 +379,7 @@
 			<produces dir="${src.java}/hermes/xml" includes="**/*.java" />
 		</xjc>
 
-		<javac target="1.5" destdir="${classes}" deprecation="on" debug="true">
+		<javac target="1.7" destdir="${classes}" deprecation="on" debug="true" includeantruntime="false">
 			<src path="${src.java}" />
 			<exclude name="hermes/ext/imq/*.java" />
 			<exclude name="hermes/ext/oracle/aq/*.java" />
@@ -411,7 +412,7 @@
 
 
 	<target name="compile-qpid" depends="jar" if="qpid.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.qpid}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.qpid}" deprecation="on" debug="true">
 			<include name="**/ext/qpid/*.java" />
 			<include name="**/ext/qpid/qmf/*.java" />
 			<classpath refid="qpid.classpath" />
@@ -419,14 +420,14 @@
 	</target>
 
 	<target name="compile-oracleaq" depends="jar" if="oracleaq.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.oracleaq}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.oracleaq}" deprecation="on" debug="true">
 			<include name="**/ext/oracle/aq/*.java" />
 			<classpath refid="oracleaq.classpath" />
 		</javac>
 	</target>
 
 	<target name="compile-imq" depends="jar" if="imq.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.imq}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.imq}" deprecation="on" debug="true">
 			<include name="**/ext/imq/*.java" />
 			<classpath refid="imq.classpath" />
 		</javac>
@@ -434,14 +435,14 @@
 
 
 	<target name="compile-hornetq" depends="compile-main" if="hornetq.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.hornetq}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.hornetq}" deprecation="on" debug="true">
 			<include name="**/ext/hornetq/*.java" />
 			<classpath refid="hornetq.classpath" />
 		</javac>
 	</target>
 
 	<target name="compile-seebeyond" depends="jar" if="mx4j.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.seebeyond}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.seebeyond}" deprecation="on" debug="true">
 			<include name="**/ext/seebeyond/*.java" />
 			<include name="**/ext/seebeyond/model/*.java" />
 			<include name="**/ext/seebeyond/ican/*.java" />
@@ -451,7 +452,7 @@
 	</target>
 
 	<target name="compile-activemq" depends="jar" if="activemq.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.activemq}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.activemq}" deprecation="on" debug="true" includeantruntime="false">
 			<include name="**/ext/activemq/*.java" />
 			<classpath refid="activemq.classpath" />
 		</javac>
@@ -459,7 +460,7 @@
 
 
 	<target name="compile-sqs" depends="jar" if="sqs.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.sqs}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.sqs}" deprecation="on" debug="true">
 			<include name="**/ext/sqs/*.java" />
 			<classpath refid="sqs.classpath" />
 		</javac>
@@ -467,70 +468,70 @@
 
 
 	<target name="compile-sonic" depends="jar" if="sonic.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.sonic}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.sonic}" deprecation="on" debug="true">
 			<include name="**/ext/sonicmq/*.java" />
 			<classpath refid="sonic.classpath" />
 		</javac>
 	</target>
 
 	<target name="compile-ems" depends="jar" if="ems.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.ems}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.ems}" deprecation="on" debug="true" includeantruntime="false">
 			<include name="**/ext/ems/*.java" />
 			<classpath refid="ems.classpath" />
 		</javac>
 	</target>
 
 	<target name="compile-fiorano" depends="compile-main" if="fiorano.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.fiorano}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.fiorano}" deprecation="on" debug="true">
 			<include name="**/ext/fiorano/*.java" />
 			<classpath refid="fiorano.classpath" />
 		</javac>
 	</target>
 
 	<target name="compile-mq" depends="compile-main" if="mq.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.mq}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.mq}" deprecation="on" debug="true">
 			<include name="**/ext/mq/*.java" />
 			<classpath refid="websphere.classpath" />
 		</javac>
 	</target>
 
 	<target name="compile-openjms" depends="compile-main" if="openjms.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.openjms}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.openjms}" deprecation="on" debug="true">
 			<include name="**/ext/openjms/*.java" />
 			<classpath refid="openjms.classpath" />
 		</javac>
 	</target>
 
 	<target name="compile-joram" depends="compile-main" if="joram.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.joram}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.joram}" deprecation="on" debug="true">
 			<include name="**/ext/joram/*.java" />
 			<classpath refid="joram.classpath" />
 		</javac>
 	</target>
 
 	<target name="compile-jbossmq" depends="compile-main" if="jbossmq.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.jbossmq}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.jbossmq}" deprecation="on" debug="true">
 			<include name="**/ext/jbossmq/*.java" />
 			<classpath refid="jboss.classpath" />
 		</javac>
 	</target>
 
 	<target name="compile-weblogic" depends="compile-main" if="weblogic.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.weblogic}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" destdir="${classes.ext.weblogic}" deprecation="on" debug="true">
 			<include name="**/ext/weblogic/*.java" />
 			<classpath refid="weblogic.classpath" />
 		</javac>
 	</target>
 
 	<target name="compile-arjuna" depends="compile-main" if="arjuna.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" failonerror="false" destdir="${classes.ext.arjuna}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" failonerror="false" destdir="${classes.ext.arjuna}" deprecation="on" debug="true">
 			<include name="**/ext/arjuna/*.java" />
 			<classpath refid="arjuna.classpath" />
 		</javac>
 	</target>
 
 	<target name="compile-wme" depends="compile-main" if="wme.present">
-		<javac target="1.5" sourcepath="" srcdir="${src.java}" failonerror="false" destdir="${classes.ext.wme}" deprecation="on" debug="true">
+		<javac target="1.7" sourcepath="" srcdir="${src.java}" failonerror="false" destdir="${classes.ext.wme}" deprecation="on" debug="true">
 			<include name="**/ext/wme/*.java" />
 			<classpath refid="wme.classpath" />
 		</javac>
@@ -703,9 +704,9 @@
 
 
 	<target name="osx.app" depends="jar-ext">
-		<taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler" />
+		<taskdef name="jarbundler" classpath="${hermes.lib}/jarbundler-2.2.0.jar" classname="net.sourceforge.jarbundler.JarBundler" />
 
-		<jarbundler dir="build" name="HermesJMS" mainclass="hermes.browser.HermesBrowser" jvmversion="1.6+" icon="icons/hermes-logo.icns" version="1.15 build 290712" infostring="HermesJMS (c) Colin Crist" bundleid="hermes.HermesBrowser" vmoptions="-Dhermes.libs=HermesJMS.app/Contents/Resources">
+		<jarbundler dir="build" name="HermesJMS" mainclass="hermes.browser.HermesBrowser" jvmversion="1.6+" icon="icons/hermes-logo.icns" version="v1.16 BGC build 00002" infostring="HermesJMS (c) Colin Crist" bundleid="hermes.HermesBrowser" vmoptions="-Dhermes.libs=HermesJMS.app/Contents/Resources">
 			<javaproperty name="apple.laf.useScreenMenuBar" value="true" />
 			<javaproperty name="apple.awt.brushMetal" value="true" />
 			<javaproperty name="apple.awt.showGrowBox" value="false" />

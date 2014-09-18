@@ -26,7 +26,7 @@ import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
 
 import org.apache.commons.collections.list.TreeList;
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;	//	unused
 
 import quickfix.Field;
 import quickfix.field.MsgSeqNum;
@@ -49,14 +49,15 @@ public class FIXMessageTableModel extends AbstractTableModel implements RowValue
 	 * 
 	 */
 	private static final long serialVersionUID = -3958105974757909932L;
-	private static final Logger log = Logger.getLogger(FIXMessageTableModel.class);
+//	private static final Logger log = Logger.getLogger(FIXMessageTableModel.class);	//	unused
 	public static final String DIRECTION = " ";
 
 	// public static final String RAW_MESSAGE = "Raw Message" ;
 
+	@SuppressWarnings("unchecked")
 	private final List<FIXMessage> messages = new TreeList();
-	private final Vector<Field> fields = new Vector<Field>();
-	private final Vector<Class> classes = new Vector<Class>();
+	private final Vector<Field<?>> fields = new Vector<Field<?>>();
+	private final Vector<Class<?>> classes = new Vector<Class<?>>();
 	private SessionKey initiatorSessionKey;
 
 	public FIXMessageTableModel(SessionKey initiatorSessionKey) {
@@ -145,7 +146,7 @@ public class FIXMessageTableModel extends AbstractTableModel implements RowValue
 			}
 		} else {
 
-			final Field field = fields.get(columnIndex);
+			final Field<?> field = fields.get(columnIndex);
 			final Object fieldValue = message.getObject(field);
 
 			if (fieldValue != null && fieldValue instanceof String) {

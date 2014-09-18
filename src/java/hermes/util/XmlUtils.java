@@ -40,7 +40,7 @@ import org.xml.sax.SAXException;
  */
 public abstract class XmlUtils {
 	private static final Logger log = Logger.getLogger(XmlUtils.class);
-
+	
 	public static String prettyPrintXml(byte[] bytes) {
 		String r = new String(bytes);
 		String s = null;
@@ -102,7 +102,14 @@ public abstract class XmlUtils {
 				IoUtils.closeQuietly(reader);
 			}
 
+			if (ret.contains("-->\\w*<"))
+			{
+				//	Put line break after end of comment
+				ret = ret.replaceAll("-->\\w*<", "-->\n<");
+			}
+	    	
 			return ret;
+			
 		} else {
 			return s;
 		}
@@ -130,6 +137,6 @@ public abstract class XmlUtils {
 	}
 
 	public static boolean isXML(final String s) {
-		return s != null && (s.startsWith("<?xml") || s.startsWith("<")) ;
+		return s != null && (s.trim().startsWith("<?xml") || s.trim().startsWith("<")) ;
 	}
 }

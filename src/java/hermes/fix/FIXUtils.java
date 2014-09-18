@@ -17,6 +17,7 @@
 
 package hermes.fix;
 
+import hermes.renderers.fix.FIXMessageRenderer.MyConfig;
 import hermes.util.ByteUtils;
 
 import javax.jms.BytesMessage;
@@ -39,9 +40,15 @@ public class FIXUtils {
 	public FIXUtils() {
 		super();
 	}
-
-	public static JComponent createView(FIXMessage message, boolean displayHeaderAndTrailer, boolean displayValueWithEnum) throws FIXException, FieldNotFound {
-		return new FIXMessageViewTable(new FIXMessageViewTableModel(message));
+//	currentConfig.getDisplayHeaderAndTrailer(), currentConfig.getDisplayValueWithEnum());
+	
+	public static JComponent createView(FIXMessage message, boolean displayHeaderAndTrailer, boolean displayValueWithEnum) throws FIXException, FieldNotFound
+	{
+		return new FIXMessageViewTable(new FIXMessageViewTableModel(message), displayHeaderAndTrailer, displayValueWithEnum);
+	}
+	
+	public static JComponent createView(FIXMessage message, MyConfig myConfig) throws FIXException, FieldNotFound {
+		return new FIXMessageViewTable(new FIXMessageViewTableModel(message), myConfig);
 	}
 
 	public static String prettyPrint(FIXMessage message) {

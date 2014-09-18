@@ -25,10 +25,14 @@ import hermes.config.DestinationConfig;
 import hermes.config.HermesConfig;
 import hermes.config.RendererConfig;
 import hermes.config.SessionConfig;
+import hermes.swing.colors.Colors;
 
+import java.beans.Statement;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -72,7 +76,63 @@ public class RendererManager
       if (rendererConfig != null)
       {
          Properties rendererProperties = HermesBrowser.getConfigDAO().getRendererProperties(rConfig);
-
+         
+         //	Find any propeties which are an Enum in the render config
+         Enumeration<?> rendererPropertiesEnumeration = rendererProperties.propertyNames();
+         
+         while (rendererPropertiesEnumeration.hasMoreElements())
+         {
+        	 Object propertyObject = rendererPropertiesEnumeration.nextElement();
+        	 String propertyName = propertyObject.toString();
+        	 
+    		 Field field = null;
+    		 Class<?> fieldClass = null;
+    		 
+    		 try
+    		 {
+				field = rendererConfig.getClass().getDeclaredField(propertyName);
+				
+				fieldClass = field.getType();
+				
+				//	Protect against primitive types giving NullPointer errors
+				if (fieldClass != null)
+				{
+					if (fieldClass.isEnum())
+			   		{
+						// Handle Colors enum
+						if (fieldClass.isAssignableFrom(Colors.class))
+			   			{
+							Colors color = Colors.valueOf(rendererProperties.get(propertyObject).toString());
+							
+							String setter = "set" +  Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
+							
+						    Statement statement = new Statement(rendererConfig, setter, new Object[]{color});
+						   
+						    try
+						    {
+						    	statement.execute();
+							}
+						    catch (Exception e)
+						    {
+								e.printStackTrace();
+							}
+			   				
+						    // take the property out of the collection to avoid IllegalArgumentException: argument type mismatch from BeanUtils
+			   				rendererProperties.remove(propertyName);
+			   			}
+			   		}
+				}
+    		 }
+    		 catch (NoSuchFieldException e)
+    		 {
+    			 
+    		 }
+    		 catch (SecurityException e)
+    		 {
+    			 e.printStackTrace();
+    		 }
+         }
+         
          BeanUtils.populate(rendererConfig, rendererProperties);
       }
 
@@ -85,7 +145,7 @@ public class RendererManager
    {
       boolean gotDefaultRenderer = false;
 
-      for (Iterator iter = config.getRenderer().iterator(); iter.hasNext();)
+      for (Iterator<RendererConfig>  iter = config.getRenderer().iterator(); iter.hasNext();)
       {
          RendererConfig rConfig = (RendererConfig) iter.next();
 
@@ -165,11 +225,11 @@ public class RendererManager
          log.debug(r.getDisplayName() + ": " + r.getClass().getName()) ;
       }
 
-      for (Iterator hIter = HermesBrowser.getConfigDAO().getAllSessions(config).iterator(); hIter.hasNext();)
+      for (Iterator<SessionConfig> hIter = HermesBrowser.getConfigDAO().getAllSessions(config).iterator(); hIter.hasNext();)
       {
          SessionConfig sConfig = (SessionConfig) hIter.next();
 
-         for (Iterator iter2 = HermesBrowser.getConfigDAO().getAllDestinations(config, sConfig.getId()).iterator(); iter2.hasNext();)
+         for (Iterator<DestinationConfig> iter2 = HermesBrowser.getConfigDAO().getAllDestinations(config, sConfig.getId()).iterator(); iter2.hasNext();)
          {
             DestinationConfig dConfig = (DestinationConfig) iter2.next();
 

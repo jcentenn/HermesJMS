@@ -100,7 +100,7 @@ public abstract class BrowserAction extends AbstractDocumentComponent implements
 					+ (config.isDurable() ? " name=" + config.getClientID() : "");
 		}
 
-		return postfix == null ? rval : rval + " for " + postfix;
+		return postfix == null ? rval : rval + " FOR " + postfix;
 	}
 
 	private final List<Message> cachedRows = new ArrayList<Message>();
@@ -142,7 +142,7 @@ public abstract class BrowserAction extends AbstractDocumentComponent implements
 		this.maxMessages = maxMessages;
 		this.messagePayloadPanel = new MessagePayloadPanel(dConfig.getName());
 		this.postfix = postfix;
-
+		
 		topPanel = (JPanel) getComponent();
 	}
 
